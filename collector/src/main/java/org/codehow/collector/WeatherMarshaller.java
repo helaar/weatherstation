@@ -12,7 +12,7 @@ import java.util.regex.Pattern;
 public class WeatherMarshaller implements Processor {
 
     private final static Pattern IMGEXP = Pattern.compile("\"main-content\".*<img src=\"(.*?)\"");
-    private final static Pattern TABLEEXP = Pattern.compile("<table>(.*?)</table>");
+    private final static Pattern TABLEEXP = Pattern.compile("<table.*?>(.*?)</table>");
 
     @Override
     public void process(Exchange exchange) throws Exception {
@@ -23,7 +23,7 @@ public class WeatherMarshaller implements Processor {
             exchange.getIn().setHeader(Exchange.HTTP_URI,imgMatcher.group(1));
 
         final Matcher tableMatcher = TABLEEXP.matcher(body);
-        if( imgMatcher.find())
+        if( tableMatcher.find())
             exchange.getIn().setBody(parseTable(tableMatcher.group(1)));
 
     }
