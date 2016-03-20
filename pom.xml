@@ -16,6 +16,7 @@
 
     <modules>
         <module>collector</module>
+        <module>education</module>
     </modules>
 
     <dependencies>
