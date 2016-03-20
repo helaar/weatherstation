@@ -13,6 +13,8 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static java.time.format.DateTimeFormatter.ofPattern;
+
 /**
  */
 public class WeatherMarshaller implements Processor {
@@ -31,14 +33,17 @@ public class WeatherMarshaller implements Processor {
             exchange.getIn().setHeader(Exchange.HTTP_URI,imgMatcher.group(1));
 
         final Matcher tableMatcher = TABLEEXP.matcher(body);
-        if( tableMatcher.find())
-            exchange.getIn().setBody(parseTable(tableMatcher.group(1), exchange.getExchangeId()));
+        if( tableMatcher.find()) {
+            CurrentWeather current = parseTable(tableMatcher.group(1));
+            exchange.getIn().setBody(current);
+            exchange.getIn().setHeader("weather-sample-id", current.getSampleId());
+        }
 
     }
 
-    private CurrentWeather parseTable(String table, String id) {
+    private CurrentWeather parseTable(String table) {
 
-        Builder builder = new Builder(id);
+        Builder builder = new Builder();
 
         List<String[]> rows = splitRows(table);
         for(String[] row:rows) {
@@ -78,7 +83,6 @@ public class WeatherMarshaller implements Processor {
 
     private static class Builder {
 
-        private final String id;
         private String time;
         private String date;
         private String temp;
@@ -87,20 +91,20 @@ public class WeatherMarshaller implements Processor {
         private String hum;
         private String pressure;
 
-        private Builder(String id) {
-            this.id = id;
+        private Builder() {
         }
 
 
         CurrentWeather build() throws ParseException {
 
-            final LocalDateTime dt = LocalDateTime.parse(date+" "+time, DateTimeFormatter.ofPattern("dd/MM/yy HH:mm"));
+            final LocalDateTime dt = LocalDateTime.parse(date+" "+time, ofPattern("dd/MM/yy HH:mm"));
             final NumberFormat nf = NumberFormat.getInstance();
             final double temp = nf.parse(this.temp.replace(".",",")).doubleValue();
             final double wind = nf.parse(this.wind.replace(".",",")).doubleValue();
             final int windDir = nf.parse(this.windDirection.replace(".",",").split(" ")[1]).intValue();
             final int hum = nf.parse(this.hum.replace(".",",")).intValue();
             final double press = nf.parse(this.pressure.replace(".",",")).doubleValue();
+            final String id=dt.format(ofPattern("yyyy-MM-dd_HHmm"));
             return new CurrentWeather(id,dt,temp, wind, windDir,hum,press);
         }
 

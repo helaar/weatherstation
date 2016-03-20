@@ -30,10 +30,10 @@ public class CollectorPlugin {
                         .to("http:m.skiklubben.no")
                         .process(new WeatherMarshaller()).removeHeader("content-type")
                         .process(serializer)
-                        .to("file:target?fileName=skistua-${exchangeId}.json")
+                        .to("file:target?fileName=sample-${header[weather-sample-id]}.json")
                         .process(exchange -> exchange.getIn().setBody(""))
                         .to("http://dummyhost")
-                        .to("file:target?fileName=skistua-${exchangeId}.jpg");
+                        .to("file:target?fileName=sample-${header[weather-sample-id]}.jpg");
             }
         };
     }
