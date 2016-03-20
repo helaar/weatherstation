@@ -30,22 +30,31 @@ public class CurrentWeather {
         this.currentAirpressure = currentAirpressure;
     }
 
-    /*
-    Klokken
-    Datoprivate
-    Temperaturer
-      - nå
-      - max
-      - min
-    Vindstyrke
-      - nå
-      - max
-    Vindkast
-    Vindretning
-    Luftfuktighet
-    Lufttrykk
+    public String getSampleId() {
+        return sampleId;
+    }
 
-     */
+    public LocalDateTime getTimestamp() {
+        return timestamp;
+    }
 
+    public double getCurrentTemp() {
+        return currentTemp;
+    }
 
+    public double getCurrentWindSpeed() {
+        return currentWindSpeed;
+    }
+
+    public int getCurrentWindDirection() {
+        return currentWindDirection;
+    }
+
+    public double getCurrentHumidity() {
+        return currentHumidity;
+    }
+
+    public double getCurrentAirpressure() {
+        return currentAirpressure;
+    }
 }

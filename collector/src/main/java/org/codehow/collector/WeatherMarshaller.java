@@ -4,7 +4,8 @@ import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
 import org.codehow.model.CurrentWeather;
 
-import java.time.LocalDate;
+import java.text.NumberFormat;
+import java.text.ParseException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -18,6 +19,8 @@ public class WeatherMarshaller implements Processor {
 
     private final static Pattern IMGEXP = Pattern.compile("\"main-content\".*<img src=\"(.*?)\"");
     private final static Pattern TABLEEXP = Pattern.compile("<table.*?>(.*?)</table>");
+    private final static Pattern ROWEXP = Pattern.compile("<tr>(.*?)</tr>");
+    private final static Pattern COLEXP = Pattern.compile("<td.*?>(.*?)</td> *?<td.*?strong>(.*?)</strong></td>");
 
     @Override
     public void process(Exchange exchange) throws Exception {
@@ -29,55 +32,77 @@ public class WeatherMarshaller implements Processor {
 
         final Matcher tableMatcher = TABLEEXP.matcher(body);
         if( tableMatcher.find())
-            exchange.getIn().setBody(parseTable(tableMatcher.group(1)));
+            exchange.getIn().setBody(parseTable(tableMatcher.group(1), exchange.getExchangeId()));
 
     }
 
-    private CurrentWeather parseTable(String table) {
+    private CurrentWeather parseTable(String table, String id) {
 
-        Builder builder = new Builder();
+        Builder builder = new Builder(id);
 
         List<String[]> rows = splitRows(table);
         for(String[] row:rows) {
-            if(row[0].equals("Klokken:"))
-                builder.time(row[1]);
-            else if()
+            if("Klokken:".equals(row[0]))
+                builder.time = row[1];
+            else if("Dato:".equals(row[0]))
+                builder.date = row[1];
+            else if("Temperatur:".equals(row[0]))
+                builder.temp=row[1];
+            else if("Vindstyrke:".equals(row[0]))
+                builder.wind=row[1];
+            else if("Vindretning:".equals(row[0]))
+                builder.windDirection=row[1];
+            else if("Luftfuktighet:".equals(row[0]))
+                builder.hum=row[1];
+            else if("Lufttrykk:".equals(row[0]))
+                builder.pressure=row[1];
         }
-        return builder.build();
+        try {
+            return builder.build();
+        } catch (ParseException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private List<String[]> splitRows(String table) {
 
         List<String[]> ret = new ArrayList<>();
-        for (String line: table.split("</tr><tr>")){
-            String row = line.replaceAll("<tr>","").replaceAll("</tr>","");
-            String cols[] = row.split("</td><td>");
-            for(int i=0; i < cols.length;i++)
-                cols[i] = cols[i].replaceAll("<td>","").replaceAll("</td>","").trim();
-            ret.add(cols);
+        Matcher cols = COLEXP.matcher(table);
+        while(cols.find()) {
+            String label = cols.group(1).trim();
+            String value = cols.group(2).trim();
+            ret.add(new String[]{label,value});
         }
         return ret;
     }
 
     private static class Builder {
 
+        private final String id;
         private String time;
         private String date;
+        private String temp;
+        private String wind;
+        private String windDirection;
+        private String hum;
+        private String pressure;
 
-        Builder time(String s) {
-            time = s;
-            return this;
+        private Builder(String id) {
+            this.id = id;
         }
 
-        Builder date(String s) {
-            date = s;
-            return this;
+
+        CurrentWeather build() throws ParseException {
+
+            final LocalDateTime dt = LocalDateTime.parse(date+" "+time, DateTimeFormatter.ofPattern("dd/MM/yy HH:mm"));
+            final NumberFormat nf = NumberFormat.getInstance();
+            final double temp = nf.parse(this.temp.replace(".",",")).doubleValue();
+            final double wind = nf.parse(this.wind.replace(".",",")).doubleValue();
+            final int windDir = nf.parse(this.windDirection.replace(".",",").split(" ")[1]).intValue();
+            final int hum = nf.parse(this.hum.replace(".",",")).intValue();
+            final double press = nf.parse(this.pressure.replace(".",",")).doubleValue();
+            return new CurrentWeather(id,dt,temp, wind, windDir,hum,press);
         }
 
-        CurrentWeather build() {
-
-            LocalDateTime dt = LocalDateTime.parse(date+" "+time, DateTimeFormatter.ofPattern("DD/MM/YY HH:mm"));
-            return new CurrentWeather("0",dt,);
-        }
     }
 }
