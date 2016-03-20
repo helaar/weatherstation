@@ -9,7 +9,7 @@ import java.util.regex.Pattern;
 
 /**
  */
-public class SkiklubbenMarshaller implements Processor {
+public class WeatherMarshaller implements Processor {
 
     private final static Pattern IMGEXP = Pattern.compile("\"main-content\".*<img src=\"(.*?)\"");
     private final static Pattern TABLEEXP = Pattern.compile("<table>(.*?)</table>");
