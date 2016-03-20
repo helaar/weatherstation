@@ -25,7 +25,6 @@ public class WeatherMarshaller implements Processor {
         final Matcher tableMatcher = TABLEEXP.matcher(body);
         if( imgMatcher.find())
             exchange.getIn().setBody(parseTable(tableMatcher.group(1)));
-        exchange.getIn().setBody("");
 
     }
 

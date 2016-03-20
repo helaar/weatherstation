@@ -24,6 +24,7 @@ public class CollectorPlugin {
                         .process(new WeatherMarshaller()).removeHeader("content-type")
                         //.process(serializer)
                         //.to("file:target?fileName=skistua-${exchangeId}.json")
+                        .process(exchange -> exchange.getIn().setBody(""))
                         .to("http://dummyhost")
                         .to("file:target?fileName=skistua-${exchangeId}.jpg");
             }
