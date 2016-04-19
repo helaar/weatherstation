@@ -7,7 +7,6 @@ import org.codehow.model.CurrentWeather;
 import java.text.NumberFormat;
 import java.text.ParseException;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
