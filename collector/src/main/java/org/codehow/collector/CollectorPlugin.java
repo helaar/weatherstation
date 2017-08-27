@@ -10,9 +10,9 @@ import org.kantega.reststop.api.Plugin;
  */
 @Plugin
 public class CollectorPlugin {
-
     @Export
-    private final RouteBuilder imageRoute;
+    private final RouteBuilder baneRute;
+
 
     public CollectorPlugin() {
 
@@ -21,6 +21,7 @@ public class CollectorPlugin {
             exchange.getIn().setBody(mapper.writeValueAsString(exchange.getIn().getBody()));
         };
 
+        /*
         imageRoute = new RouteBuilder() {
             @Override
             public void configure() throws Exception {
@@ -36,5 +37,9 @@ public class CollectorPlugin {
                         .to("file:target?fileName=sample-${header[weather-sample-id]}.jpg");
             }
         };
+        */
+
+        baneRute = new DommeroppdragRoute(2);
+
     }
 }
